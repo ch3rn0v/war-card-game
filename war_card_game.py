@@ -44,8 +44,6 @@ class Card():
     Represents the Card entity. It has value and comparison method.
     """
 
-    value = ''
-
     def __init__(self, value):
         if isinstance(value, str):
             if value in RANKS:
@@ -62,7 +60,23 @@ class Card():
     def __repr__(self):
         return self.value
 
-    # Todo: define comparison to another Card
+    def __lt__(self, other):
+        return RANKS.index(self.value) < RANKS.index(other.value)
+
+    def __le__(self, other):
+        return RANKS.index(self.value) <= RANKS.index(other.value)
+
+    def __eq__(self, other):
+        return RANKS.index(self.value) == RANKS.index(other.value)
+
+    def __ne__(self, other):
+        return RANKS.index(self.value) != RANKS.index(other.value)
+
+    def __gt__(self, other):
+        return RANKS.index(self.value) > RANKS.index(other.value)
+
+    def __ge__(self, other):
+        return RANKS.index(self.value) >= RANKS.index(other.value)
 
 
 class Deck():
@@ -97,7 +111,11 @@ class Deck():
         return [FIRST_HAND, SECOND_HAND]
 
     def reset(self):
-        # RANKS is a list of all possible card values, there are 13 of them.
+        """
+        Resets the deck to its initial state.
+        """
+
+        # RANKS is a list of all possible card values; there are 13 of them.
         # The deck has 4 suits of 13 cards each.
         for i in range(len(RANKS) * 4):
             c = Card(RANKS[i % 13])
@@ -112,41 +130,60 @@ class Hand():
     Represents a hand of cards.
     """
 
-    cards = []
+    # Top of the hand is indexed as self.cards[0]. Bottom is at the self.cards[-1].
 
-    def __init__(self, cards):
-        if all(isinstance(card, Card) for card in cards):
+    def __init__(self, cards=None):
+        if cards and all(isinstance(card, Card) for card in cards):
             self.cards = cards
+        elif not cards:
+            self.cards = []
         else:
             raise TypeError(
                 "Hand's cards must be a list of objects of class Card.")
 
     def is_empty(self):
+        """
+        Returns True if the hand has no cards left.
+        """
+
         return len(self.cards) == 0
 
     def draw_cards(self, number_of_cards_to_draw):
         """
-        Draw number_of_cards_to_draw from the hand
+        Draws number_of_cards_to_draw from the top of the hand.
         """
-        # Todo: define drawing a card
-        pass
 
-    # Todo: define cards addition to the bottom of the hand
+        if number_of_cards_to_draw > len(self):
+            raise IndexError(
+                "Index out of range. Tried to draw {}. The hand has only {} cards.".format(number_of_cards_to_draw, len(self)))
+        else:
+            drawn_cards = self.cards[:number_of_cards_to_draw]
+            del self.cards[:number_of_cards_to_draw]
+            return drawn_cards
+
+    def add_cards(self, cards_to_add):
+        """
+        Adds cards_to_add to the bottom of the Hand.
+        cards_to_add must be a list of objects of class Card.
+        """
+
+        if all(isinstance(card, Card) for card in cards_to_add):
+            self.cards += cards_to_add
+        else:
+            raise TypeError(
+                "Hand's cards must be a list of objects of class Card.")
 
     def __str__(self):
         return "{}".format(self.cards)
+
+    def __len__(self):
+        return len(self.cards)
 
 
 class Game():
     """
     Initiates the game engine for War, the card game.
     """
-
-    notificator = None
-    deck = None
-    game_is_going = False
-    player_hand = None
-    machine_hand = None
 
     GAME_STARTED_MSG = "Welcome to War. Don't be scared, it's just a card game.\n\
 And you have no choice.\n"
@@ -156,7 +193,8 @@ And you have no choice.\n"
     def __init__(self):
         self.notificator = Notificator()
         self.deck = Deck()
-        # Todo: initialize hands here, populate them in the start() method
+        self.player_hand = Hand()
+        self.machine_hand = Hand()
         self.start()
 
     def start(self):
@@ -167,60 +205,114 @@ And you have no choice.\n"
         self.game_is_going = True
         self.notificator.announce(self.GAME_STARTED_MSG)
         self.deck.shuffle()
-        shuffled_cards = self.deck.deal_cards()
-        self.player_hand = Hand(shuffled_cards[0])
-        self.machine_hand = Hand(shuffled_cards[1])
+        two_sets_of_shuffled_cards = self.deck.deal_cards()
+        self.player_hand.add_cards(two_sets_of_shuffled_cards[0])
+        self.machine_hand.add_cards(two_sets_of_shuffled_cards[1])
+        self.total_rounds_counter = 0
+        self.particular_war_rounds_counter = 0
         self.conduct_game()
 
-        # print(self.player_hand)
-        # print(self.machine_hand)
-
     def conduct_game(self):
-        self.check_if_anyone_won()
-        # the battle begins:
-        # grab a card from machine's stack to machine's hand
-        # grab a card from player's stack to player's stack
-        # players_card = self.player_hand.draw_cards(1)
-        # machines_card = self.machine_hand.draw_cards(1)
-        # compare cards
-        # if the cards are different the upper hand gets both. They go to the bottom of the stack
-        # else the war begins: each player grabs four more cards, three face down and one face up
-        #     again, if they are different the upper hand gets all 10 cards. They go to the bottom of the stack
-        #     else (if the face-up cards are again equal) the battle repeats with another set of two face-down and two face-up cards.
-        #     this repeats until one player's face-up card is higher than their opponent's.
+        while not self.winner_is_identified():
+            self.conduct_next_round()
 
-    def check_if_anyone_won(self):
-        """
-        At every step of the game it counts each player's cards in the stack
-        after the cards that were in the hands have been distributed.
-        Whoever has none cards left, loses.
-        """
+    def conduct_next_round(self, cards_in_bank=None):
+        print("Round {} has begun.".format(self.total_rounds_counter))
+        print("Player  has {} cards left.".format(len(self.player_hand)))
+        print("Machine has {} cards left.".format(len(self.machine_hand)))
+        self.total_rounds_counter += 1
 
+        # If the war didn't end on its first round, then the second and all the other rounds of this
+        # particular war should draw 2 face down cards and 2 face up cards instead of 3 and 1 respectively.
+
+        if self.particular_war_rounds_counter < 2:
+            count_of_cards_to_draw_face_up = 1
+            count_of_cards_to_draw_face_down = 3
+        else:
+            count_of_cards_to_draw_face_up = 2
+            count_of_cards_to_draw_face_down = 2
+
+        # Draw face down cards.
+        if cards_in_bank is not None:
+            self.particular_war_rounds_counter += 1
+            try:
+                player_cards_drawn_face_down = self.player_hand.draw_cards(
+                    count_of_cards_to_draw_face_down)
+            except IndexError:
+                # If the player doesn't have enough cards, the machine has won.
+                self.announce_winner('M')
+            try:
+                machine_cards_drawn_face_down = self.machine_hand.draw_cards(
+                    count_of_cards_to_draw_face_down)
+            except IndexError:
+                # If the machine doesn't have enough cards, the player has won.
+                self.announce_winner('P')
+
+        # Draw face up cards.
+        try:
+            player_cards_drawn_face_up = self.player_hand.draw_cards(
+                count_of_cards_to_draw_face_up)
+        except IndexError:
+            # If the player doesn't have enough cards, the machine has won.
+            self.announce_winner('M')
+        try:
+            machine_cards_drawn_face_up = self.machine_hand.draw_cards(
+                count_of_cards_to_draw_face_up)
+        except IndexError:
+            # If the machine doesn't have enough cards, the player has won.
+            self.announce_winner('P')
+
+        # Don't bother trying to gather drawn cards if we already know a winner.
         if self.game_is_going:
-            if self.player_hand.is_empty == 0:
-                self.notificator.announce(self.MACHINE_HAS_WON_MSG)
-                self.game_is_going = False
-            elif self.machine_hand.is_empty == 0:
-                self.notificator.announce(self.PLAYER_HAS_WON_MSG)
-                self.game_is_going = False
+            if cards_in_bank is None:
+                cards_in_bank = player_cards_drawn_face_up + machine_cards_drawn_face_up
+            else:
+                cards_in_bank += player_cards_drawn_face_up + player_cards_drawn_face_down + \
+                    machine_cards_drawn_face_up + machine_cards_drawn_face_down
+
+            # If cards' values are different give both cards to winner
+            if player_cards_drawn_face_up[-1] < machine_cards_drawn_face_up[-1]:
+                self.machine_hand.add_cards(cards_in_bank)
+                cards_in_bank = []
+                self.particular_war_rounds_counter = 0
+            elif player_cards_drawn_face_up[-1] > machine_cards_drawn_face_up[-1]:
+                self.player_hand.add_cards(cards_in_bank)
+                cards_in_bank = []
+                self.particular_war_rounds_counter = 0
+            else:
+                self.conduct_next_round(cards_in_bank)
+
+    def winner_is_identified(self):
+        """
+        If each player has some cards, winner is not identified yet.
+        Whoever has none cards left loses. The other player becomes the winner.
+        """
+
+        if self.player_hand.is_empty():
+            self.announce_winner("M")
+            self.game_is_going = False
+            return True
+        elif self.machine_hand.is_empty():
+            self.announce_winner("P")
+            self.game_is_going = False
+            return True
+        else:
+            return False
+
+    def announce_winner(self, winner):
+        """
+        Announces winner.
+        Winner can either be the Player (winner == 'P') or the Machine (winner == 'M').
+        """
+
+        if winner == "P":
+            self.notificator.announce(self.PLAYER_HAS_WON_MSG)
+        elif winner == "M":
+            self.notificator.announce(self.MACHINE_HAS_WON_MSG)
+        else:
+            raise ValueError(
+                "Winner can either be the Player (winner == 'P') or the Machine (winner == 'M').")
+        self.game_is_going = False
 
 
-GAME = Game()
-
-# ---
-# Test a deck of cards:
-# ---
-# print("Initializing test deck.")
-# TEST_DECK = Deck()
-# print(TEST_DECK)
-# print("Shuffling test deck.")
-# TEST_DECK.shuffle()
-# print(TEST_DECK)
-# print("Dealing cards from the test deck.")
-# TEST_HANDS = TEST_DECK.deal_cards()
-# print("Test deck remainder:")
-# print(TEST_DECK)
-# print("Test hands contents:")
-# print(TEST_HANDS)
-# print("First hand's len: {}".format(len(TEST_HANDS[0])))
-# print("Second hand's len: {}".format(len(TEST_HANDS[1])))
+GAME = Game()  # Game starts automatically upon initialization.
