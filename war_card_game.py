@@ -4,18 +4,7 @@ Implements War, the card game.
 
 from random import shuffle
 
-RANKS = '2 3 4 5 6 7 8 9 10 J Q K A'.split(' ')  # from lower to higher.
-
-# The deck has 52 cards. The deck is shuffled, then each player gets 26 cards to start, face down.
-# Both players take a card from the top of their stacks. They simultaneously turn the cards face up. Thus a "battle" starts.
-#   If one card's value is higher than the other, the owner of that card grabs them both and stores them on the bottom of their stack.
-#   If both cards' value is equal, a "war" begins.
-#       Both players place the next three cards of their stack face down. And another card (the following one from top of their stack) face up.
-#       The owner of the higher face-up card wins the 'war' and adds all 10 cards on the table to the bottom of their deck.
-#       If the face-up cards are again equal then the battle repeats with another set of two face-down and two face-up cards.
-#       This repeats until one player's face-up card is higher than their opponent's.
-# If the player rans out of cards, the game ends.
-# The winner is the one who accumulated all the cards.
+RANKS = '2 3 4 5 6 7 8 9 10 J Q K A'.split(' ')  # From lower to higher.
 
 
 class Notificator():
@@ -271,10 +260,12 @@ And you have no choice.\n"
             if cards_in_bank is None:
                 cards_in_bank = player_cards_drawn_face_up + machine_cards_drawn_face_up
             else:
-                cards_in_bank += player_cards_drawn_face_up + player_cards_drawn_face_down + \
-                    machine_cards_drawn_face_up + machine_cards_drawn_face_down
+                cards_in_bank += player_cards_drawn_face_down + player_cards_drawn_face_up + \
+                    machine_cards_drawn_face_down + machine_cards_drawn_face_up
 
-            # If cards' values are different give both cards to winner
+            shuffle(cards_in_bank)  # To avoid endless wars.
+
+            # If cards' values are different give both cards to winner.
             if player_cards_drawn_face_up[-1] < machine_cards_drawn_face_up[-1]:
                 self.machine_hand.add_cards(cards_in_bank)
                 cards_in_bank = []
