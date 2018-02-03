@@ -272,9 +272,9 @@ And you have no choice.\n"
                 cards_in_bank += player_cards_drawn_face_down + player_cards_drawn_face_up + \
                     machine_cards_drawn_face_down + machine_cards_drawn_face_up
 
-            shuffle(cards_in_bank)  # To avoid endless wars.
+            shuffle(cards_in_bank)  # To avoid endless (or just very long) wars.
 
-            # If cards' values are different give both cards to winner.
+            # If cards' values are different give all cards in the bank to the winner of this round.
             if player_cards_drawn_face_up[-1] < machine_cards_drawn_face_up[-1]:
                 self.machine_hand.add_cards(cards_in_bank)
                 cards_in_bank = []
