@@ -213,7 +213,7 @@ And you have no choice.\n"
         self.conduct_game()
 
     def conduct_game(self):
-        while not self.winner_is_identified():
+        while self.game_is_going:
             self.conduct_next_round()
 
     def conduct_next_round(self, cards_in_bank=None):
@@ -284,8 +284,10 @@ And you have no choice.\n"
 
     def winner_is_identified(self):
         """
+        Tries to identify the winner.
         If each player has some cards, winner is not identified yet.
         Whoever has none cards left loses. The other player becomes the winner.
+        If the winner is identified, calls the announcement method.
         """
 
         if self.player_hand.is_empty():
