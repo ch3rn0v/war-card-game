@@ -241,12 +241,14 @@ And you have no choice.\n"
             except IndexError:
                 # If the player doesn't have enough cards, the machine has won.
                 self.announce_winner('M')
+                return
             try:
                 machine_cards_drawn_face_down = self.machine_hand.draw_cards(
                     count_of_cards_to_draw_face_down)
             except IndexError:
                 # If the machine doesn't have enough cards, the player has won.
                 self.announce_winner('P')
+                return
 
         # Draw face up cards.
         try:
@@ -255,12 +257,14 @@ And you have no choice.\n"
         except IndexError:
             # If the player doesn't have enough cards, the machine has won.
             self.announce_winner('M')
+            return
         try:
             machine_cards_drawn_face_up = self.machine_hand.draw_cards(
                 count_of_cards_to_draw_face_up)
         except IndexError:
             # If the machine doesn't have enough cards, the player has won.
             self.announce_winner('P')
+            return
 
         # Don't bother trying to gather drawn cards if we already know a winner.
         if self.game_is_going:
@@ -281,25 +285,6 @@ And you have no choice.\n"
                 self.particular_war_rounds_counter = 0
             else:
                 self.conduct_next_round(cards_in_bank)
-
-    def winner_is_identified(self):
-        """
-        Tries to identify the winner.
-        If each player has some cards, winner is not identified yet.
-        Whoever has none cards left loses. The other player becomes the winner.
-        If the winner is identified, calls the announcement method.
-        """
-
-        if self.player_hand.is_empty():
-            self.announce_winner("M")
-            self.game_is_going = False
-            return True
-        elif self.machine_hand.is_empty():
-            self.announce_winner("P")
-            self.game_is_going = False
-            return True
-        else:
-            return False
 
     def announce_winner(self, winner):
         """
