@@ -223,7 +223,6 @@ And you have no choice.\n"
 
         # If the war didn't end on its first round, then the second and all the other rounds of this
         # particular war should draw 2 face down cards and 2 face up cards instead of 3 and 1 respectively.
-
         count_of_cards_to_draw_face_up = 1
         if self.particular_war_rounds_counter < 2:
             count_of_cards_to_draw_face_down = 3
@@ -233,36 +232,34 @@ And you have no choice.\n"
         # Draw face down cards (only in case of war).
         if cards_in_bank is not None:
             self.particular_war_rounds_counter += 1
-            try:
-                player_cards_drawn_face_down = self.player_hand.draw_cards(
-                    count_of_cards_to_draw_face_down)
-            except IndexError:
-                # If the player doesn't have enough cards, the machine has won.
+            if count_of_cards_to_draw_face_down + count_of_cards_to_draw_face_up > len(self.player_hand):
                 self.announce_winner('M')
                 return
-            try:
-                machine_cards_drawn_face_down = self.machine_hand.draw_cards(
+            else:
+                player_cards_drawn_face_down = self.player_hand.draw_cards(
                     count_of_cards_to_draw_face_down)
-            except IndexError:
-                # If the machine doesn't have enough cards, the player has won.
+
+            if count_of_cards_to_draw_face_down + count_of_cards_to_draw_face_up > len(self.machine_hand):
                 self.announce_winner('P')
                 return
+            else:
+                machine_cards_drawn_face_down = self.machine_hand.draw_cards(
+                    count_of_cards_to_draw_face_down)
 
         # Draw face up cards.
-        try:
-            player_cards_drawn_face_up = self.player_hand.draw_cards(
-                count_of_cards_to_draw_face_up)
-        except IndexError:
-            # If the player doesn't have enough cards, the machine has won.
+        if count_of_cards_to_draw_face_up > len(self.player_hand):
             self.announce_winner('M')
             return
-        try:
-            machine_cards_drawn_face_up = self.machine_hand.draw_cards(
+        else:
+            player_cards_drawn_face_up = self.player_hand.draw_cards(
                 count_of_cards_to_draw_face_up)
-        except IndexError:
-            # If the machine doesn't have enough cards, the player has won.
+
+        if count_of_cards_to_draw_face_up > len(self.machine_hand):
             self.announce_winner('P')
             return
+        else:
+            machine_cards_drawn_face_up = self.machine_hand.draw_cards(
+                count_of_cards_to_draw_face_up)
 
         # Don't bother trying to gather drawn cards if we already know a winner.
         if self.game_is_going:
@@ -272,7 +269,8 @@ And you have no choice.\n"
                 cards_in_bank += player_cards_drawn_face_down + player_cards_drawn_face_up + \
                     machine_cards_drawn_face_down + machine_cards_drawn_face_up
 
-            shuffle(cards_in_bank)  # To avoid endless (or just very long) wars.
+            # To avoid endless (or just very long) wars.
+            shuffle(cards_in_bank)
 
             # If cards' values are different give all cards in the bank to the winner of this round.
             if player_cards_drawn_face_up[-1] < machine_cards_drawn_face_up[-1]:
