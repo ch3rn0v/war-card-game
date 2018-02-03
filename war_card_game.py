@@ -177,8 +177,8 @@ class Game():
 
     GAME_STARTED_MSG = "Welcome to War. Don't be scared, it's just a card game.\n\
 And you have no choice.\n"
-    MACHINE_HAS_WON_MSG = "Player has no cards left. Machine has won the game."
-    PLAYER_HAS_WON_MSG = "Machine has no cards left. Player has won the game."
+    MACHINE_HAS_WON_MSG = "\nPlayer has no cards left.\nMachine has won the game."
+    PLAYER_HAS_WON_MSG = "\nMachine has no cards left.\nPlayer has won the game."
 
     def __init__(self):
         self.notificator = Notificator()
