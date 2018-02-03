@@ -224,11 +224,10 @@ And you have no choice.\n"
         # If the war didn't end on its first round, then the second and all the other rounds of this
         # particular war should draw 2 face down cards and 2 face up cards instead of 3 and 1 respectively.
 
+        count_of_cards_to_draw_face_up = 1
         if self.particular_war_rounds_counter < 2:
-            count_of_cards_to_draw_face_up = 1
             count_of_cards_to_draw_face_down = 3
         else:
-            count_of_cards_to_draw_face_up = 1
             count_of_cards_to_draw_face_down = 1
 
         # Draw face down cards (only in case of war).
