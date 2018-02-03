@@ -171,7 +171,8 @@ class Hand():
 
 class Game():
     """
-    Initiates the game engine for War, the card game.
+    The game engine for War, the card game.
+    Automatically starts the game upon initialization.
     """
 
     GAME_STARTED_MSG = "Welcome to War. Don't be scared, it's just a card game.\n\
@@ -202,10 +203,19 @@ And you have no choice.\n"
         self.conduct_game()
 
     def conduct_game(self):
+        """
+        Main game loop.
+        """
+
         while self.game_is_going:
             self.conduct_next_round()
 
     def conduct_next_round(self, cards_in_bank=None):
+        """
+        Executes a single round of the game.
+        Verifies if there is a winner. And calls itself in cases of war.
+        """
+
         print("Round {} has begun.".format(self.total_rounds_counter))
         print("Player  has {} cards left.".format(len(self.player_hand)))
         print("Machine has {} cards left.".format(len(self.machine_hand)))
@@ -218,10 +228,10 @@ And you have no choice.\n"
             count_of_cards_to_draw_face_up = 1
             count_of_cards_to_draw_face_down = 3
         else:
-            count_of_cards_to_draw_face_up = 2
-            count_of_cards_to_draw_face_down = 2
+            count_of_cards_to_draw_face_up = 1
+            count_of_cards_to_draw_face_down = 1
 
-        # Draw face down cards.
+        # Draw face down cards (only in case of war).
         if cards_in_bank is not None:
             self.particular_war_rounds_counter += 1
             try:
@@ -293,4 +303,4 @@ And you have no choice.\n"
         self.game_is_going = False
 
 
-GAME = Game()  # Game starts automatically upon initialization.
+GAME = Game()
